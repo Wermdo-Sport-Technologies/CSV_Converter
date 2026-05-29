@@ -55,3 +55,51 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+
+# Build
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.vsidx
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs
+*.log
+
+# Temporary
+*.tmp
+*.temp
+
+# AI generated files
+*.codechunk
+
+# Draw.io
+*.drawio.bkp
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Test Results
+TestResults/
+
+# Publish folders
+publish/
+artifacts/
