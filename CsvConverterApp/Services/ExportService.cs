@@ -14,20 +14,42 @@ public class ExportService
 {
     public void Export(List<Dictionary<string, string>> rows, ExportOptions options)
     {
-        var filterdRows = rows
-            .Select(row => options.SelectedColumns.ToDictionary(
-                col => col,
-                col => row.TryGetValue(col, out var value) ? value : ""))
-            .ToList();
+        //var filterdRows = rows
+        //    .Select(row => options.SelectedColumns.ToDictionary(
+        //        col => col,
+        //        col => row.TryGetValue(col, out var value) ? value : ""))
+        //    .ToList();
+
+        //if (options.RemoveDuplicates)
+        //{
+        //    filterdRows = filterdRows.DistinctBy(row => string.Join("|", row.Values)).ToList();
+        //}
+
+        //var groups = string.IsNullOrWhiteSpace(options.SplitByColumn) ? new[] { new { Name = "export", Rows = filterdRows } } : filterdRows
+        //    .GroupBy(row => row.GetValueOrDefault(options.SplitByColumn, "Unknown"))
+        //    .Select(g => new { Name = CleanFileName(g.Key), Rows = g.ToList() });
+
+        var sourceRows = rows;
 
         if (options.RemoveDuplicates)
         {
-            filterdRows = filterdRows.DistinctBy(row => string.Join("|", row.Values)).ToList();
+            sourceRows = sourceRows
+                .DistinctBy(row => string.Join("|", row.Values))
+                .ToList();
         }
 
-        var groups = string.IsNullOrWhiteSpace(options.SplitByColumn) ? new[] { new { Name = "export", Rows = filterdRows } } : filterdRows
-            .GroupBy(row => row.GetValueOrDefault(options.SplitByColumn, "Unknown"))
-            .Select(g => new { Name = CleanFileName(g.Key), Rows = g.ToList() });
+        var groups = string.IsNullOrWhiteSpace(options.SplitByColumn)
+            ? new[] { new { Name = "export", Rows = sourceRows } }
+            : sourceRows
+                .GroupBy(row =>
+                    row.TryGetValue(options.SplitByColumn, out var value)
+                        ? value
+                        : "Unknown")
+                .Select(g => new
+                {
+                    Name = CleanFileName(g.Key),
+                    Rows = g.ToList()
+                });
 
         foreach (var group in groups)
         {
@@ -36,15 +58,60 @@ public class ExportService
             switch(options.ExportFormat.ToLower())
             {
                 case "xlsx":
-                    ExportExcel(group.Rows, path);
+                    foreach (var _group in groups)
+                    {
+                        var exportRows = group.Rows
+                            .Select(row => options.SelectedColumns.ToDictionary(
+                                col => col,
+                                col => row.TryGetValue(col, out var value)
+                                    ? value
+                                    : ""))
+                            .ToList();
+
+                        var _path = Path.Combine(
+                            options.OutputFolder,
+                            $"{group.Name}.{options.ExportFormat}");
+
+                        ExportExcel(exportRows, _path);
+                    }
                     break;
 
                 case "md":
-                    ExportMarkdown(group.Rows, path);
+                    foreach (var _group in groups)
+                    {
+                        var exportRows = group.Rows
+                            .Select(row => options.SelectedColumns.ToDictionary(
+                                col => col,
+                                col => row.TryGetValue(col, out var value)
+                                    ? value
+                                    : ""))
+                            .ToList();
+
+                        var _path = Path.Combine(
+                            options.OutputFolder,
+                            $"{group.Name}.{options.ExportFormat}");
+
+                        ExportMarkdown(exportRows, _path);
+                    }
                     break;
 
                 case "txt":
-                    ExportText(group.Rows, path);
+                    foreach (var _group in groups)
+                    {
+                        var exportRows = group.Rows
+                            .Select(row => options.SelectedColumns.ToDictionary(
+                                col => col,
+                                col => row.TryGetValue(col, out var value)
+                                    ? value
+                                    : ""))
+                            .ToList();
+
+                        var _path = Path.Combine(
+                            options.OutputFolder,
+                            $"{group.Name}.{options.ExportFormat}");
+
+                        ExportText(exportRows, _path);
+                    }
                     break;
 
             }
@@ -103,21 +170,21 @@ public class ExportService
         File.WriteAllText(filePath, sb.ToString());
     }
 
-    private void ExportText(List<Dictionary<string, string>> rows, string filePath)
+    private void ExportText(List<Dictionary<string, string>> rows, string path)
     {
         var sb = new StringBuilder();
 
-        foreach(var row in rows)
+        foreach (var row in rows)
         {
-            foreach(var item in rows)
+            foreach (var item in row)
             {
-                sb.AppendLine($"{item.Keys}: {item.Values}");
+                sb.Append($"{item.Value} ");
             }
 
             sb.AppendLine();
         }
 
-        File.WriteAllText(filePath, sb.ToString());
+        File.WriteAllText(path, sb.ToString());
     }
 
     private static string CleanFileName(string name)
