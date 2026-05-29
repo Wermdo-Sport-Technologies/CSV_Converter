@@ -9,7 +9,7 @@ namespace CsvConverterApp.Services;
 
 public class CsvReaderService
 {
-    public List<String> ReadHeader(string path)
+    public List<String> ReadHeaders(string path)
     {
         using var reader = new StreamReader(path);
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
