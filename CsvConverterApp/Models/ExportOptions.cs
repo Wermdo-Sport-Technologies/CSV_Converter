@@ -4,7 +4,13 @@ using System.Text;
 
 namespace CsvConverterApp.Models
 {
-    internal class ExportOptions
+    public class ExportOptions
     {
+        public string InputPath { get; set; } = "";
+        public string OutputFolder { get; set; } = "";
+        public List<string> SelectedColumns { get; set; } = [];
+        public bool RemoveDuplicates { get; set; }// TODO: add "what is considered a duplicate" option
+        public string ExportFormat { get; set; } = "txt";
+        public string? SplitByColumn { get; set; }
     }
 }
