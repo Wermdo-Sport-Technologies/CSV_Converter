@@ -42,5 +42,13 @@ public class ExportService
         workbook.SaveAs(filePath);
     }
 
+    private static string CleanFileName(string name)
+    {
+        foreach (var c in Path.GetInvalidFileNameChars())
+        {
+            name = name.Replace(c, '_');
+        }
+
+        return string.IsNullOrWhiteSpace(name) ? "Unknown" : name;
     }
 }
