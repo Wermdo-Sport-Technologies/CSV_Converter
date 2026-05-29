@@ -1,6 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+      <Company>Wermdö Sport Technologies</Company>
+      <Product>CSV Converter</Product>
+      <Copyright>
+          Copyright © 2026 Wermdö Sport Technologies
+      </Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
