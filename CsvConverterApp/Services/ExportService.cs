@@ -11,7 +11,45 @@ namespace CsvConverterApp.Services;
 
 public class ExportService
 {
-    internal class ExportService
+    public void Export(List<Dictionary<string, string>> rows, ExportOptions options)
+    {
+        var filterdRows = rows
+            .Select(row => options.SelectedColumns.ToDictionary(
+                col => col,
+                col => row.TryGetValue(col, out var value) ? value : ""))
+            .ToList();
+
+        if (options.RemoveDuplicates)
+        {
+            filterdRows = filterdRows.DistinctBy(row => string.Join("|", row.Values)).ToList();
+        }
+
+        var groups = string.IsNullOrWhiteSpace(options.SplitByColumn) ? new[] { new { Name = "export", Rows = filterdRows } } : filterdRows
+            .GroupBy(row => row.GetValueOrDefault(options.SplitByColumn, "Unknown"))
+            .Select(g => new { Name = CleanFileName(g.Key), Rows = g.ToList() });
+
+        foreach (var group in groups)
+        {
+            var path = Path.Combine(options.OutputFolder, $"{group.Name}.{options.ExportFormat}");
+
+            switch(options.ExportFormat.ToLower())
+            {
+                case "xlsx":
+                    ExportExcel(group.Rows, path);
+                    break;
+
+                case "md":
+                    ExportMarkdown(group.Rows, path);
+                    break;
+
+                case "txt":
+                    ExportText(group.Rows, path);
+                    break;
+
+            }
+        }
+    }
+
     private void ExportExcel(List<Dictionary<string, string>> rows, string filePath)
     {
         using var workbook = new XLWorkbook();
@@ -42,6 +80,45 @@ public class ExportService
         workbook.SaveAs(filePath);
     }
 
+    private void ExportMarkdown(List<Dictionary<string, string>> rows, string filePath)
+    {
+        if(rows.Count == 0)
+        {
+            File.WriteAllText(filePath, "");
+            return;
+        }
+
+        var headers = rows.First().Keys.ToList();
+        var sb = new StringBuilder();
+        
+        sb.AppendLine("| " + string.Join(" | ", headers) + " | ");
+        sb.AppendLine("| " + string.Join(" | ", headers.Select(_ => "---")) + " |");
+
+        foreach(var row in rows)
+        {
+            sb.AppendLine("| " + string.Join(" | ", headers.Select(h => row[h])) + " |");
+        }
+
+        File.WriteAllText(filePath, sb.ToString());
+    }
+
+    private void ExportText(List<Dictionary<string, string>> rows, string filePath)
+    {
+        var sb = new StringBuilder();
+
+        foreach(var row in rows)
+        {
+            foreach(var item in rows)
+            {
+                sb.AppendLine($"{item.Keys}: {item.Values}");
+            }
+
+            sb.AppendLine();
+        }
+
+        File.WriteAllText(filePath, sb.ToString());
+    }
+
     private static string CleanFileName(string name)
     {
         foreach (var c in Path.GetInvalidFileNameChars())
@@ -50,5 +127,14 @@ public class ExportService
         }
 
         return string.IsNullOrWhiteSpace(name) ? "Unknown" : name;
+    }
+
+    private static string EscapeCsv(string value)
+    {
+        if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))
+        {
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
+        return value;
     }
 }
