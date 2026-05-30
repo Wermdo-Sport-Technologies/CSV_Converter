@@ -37,7 +37,7 @@ public partial class MainWindow : Window
             ColumnsList.ItemsSource = headers;
             SplitColumnComboBox.ItemsSource = headers;
 
-            StatusText.Text = $"Laddade {headers.Count} kolumner.";
+            StatusText.Text = $"Loaded {headers.Count} columns.";
         }
     }
 
@@ -48,7 +48,7 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
             _outputFolder = dialog.SelectedPath;
-            StatusText.Text = $"Output-mapp: {_outputFolder}";
+            StatusText.Text = $"Output folder: {_outputFolder}";
         }
     }
 
@@ -56,7 +56,7 @@ public partial class MainWindow : Window
     {
         if (string.IsNullOrWhiteSpace(_inputPath) || string.IsNullOrWhiteSpace(_outputFolder))
         {
-            MessageBox.Show("Välj både CSV-fil och output-mapp.");
+            MessageBox.Show("Please select both a CSV file and an output folder.");
             return;
         }
 
@@ -66,7 +66,7 @@ public partial class MainWindow : Window
 
         if (selectedColumns.Count == 0)
         {
-            MessageBox.Show("Välj minst en kolumn.");
+            MessageBox.Show("Please select at least one column.");
             return;
         }
 
@@ -86,6 +86,6 @@ public partial class MainWindow : Window
         var rows = _csvReader.ReadRows(_inputPath);
         _exportService.Export(rows, options);
 
-        StatusText.Text = "Konvertering klar.";
+        StatusText.Text = "Conversion complete.";
     }
 }
