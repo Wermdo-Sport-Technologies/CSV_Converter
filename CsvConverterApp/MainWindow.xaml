@@ -5,11 +5,11 @@
 
     <StackPanel Margin="20">
 
-        <Button Content="Välj CSV-fil"
+        <Button Content="Choose CSV-file"
                 Click="ChooseInputFile_Click"
                 Margin="0,0,0,10" />
 
-        <TextBlock Text="Välj kolumner:"
+        <TextBlock Text="Choose columns:"
                    FontWeight="Bold"
                    Margin="0,0,0,5" />
 
@@ -19,10 +19,10 @@
                  Margin="0,0,0,10" />
 
         <CheckBox x:Name="RemoveDuplicatesCheckBox"
-                  Content="Ta bort duplicates"
+                  Content="Remove duplicates"
                   Margin="0,0,0,10" />
 
-        <TextBlock Text="Dela upp efter kolumn:" />
+        <TextBlock Text="Split by column:" />
         <ComboBox x:Name="SplitColumnComboBox"
                   Margin="0,0,0,10" />
 
@@ -34,11 +34,11 @@
             <ComboBoxItem Content="txt" />
         </ComboBox>
 
-        <Button Content="Välj output-mapp"
+        <Button Content="Choose output folder"
                 Click="ChooseOutputFolder_Click"
                 Margin="0,0,0,10" />
 
-        <Button Content="Konvertera"
+        <Button Content="Convert"
                 Click="Convert_Click"
                 Margin="0,0,0,10" />
 
