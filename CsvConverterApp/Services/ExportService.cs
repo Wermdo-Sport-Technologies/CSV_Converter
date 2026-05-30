@@ -6,6 +6,9 @@ using System.IO;
 using ClosedXML.Excel;
 using CsvConverterApp.Models;
 using System.Linq;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 
 namespace CsvConverterApp.Services;
@@ -113,9 +116,60 @@ public class ExportService
                         ExportText(exportRows, _path);
                     }
                     break;
+                case "docx":
+                    foreach (var _group in groups)
+                    {
+                        var exportRows = group.Rows
+                            .Select(row => options.SelectedColumns.ToDictionary(
+                                col => col,
+                                col => row.TryGetValue(col, out var value)
+                                    ? value
+                                    : ""))
+                            .ToList();
+
+                        var _path = Path.Combine(
+                            options.OutputFolder,
+                            $"{group.Name}.{options.ExportFormat}");
+
+                        ExportWord(exportRows, _path);
+                    }
+                    break;
 
             }
         }
+    }
+
+    private void ExportWord(List<Dictionary<string, string>> rows, string filePath)
+    {
+        using var document = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
+
+        var mainPart = document.AddMainDocumentPart();
+        mainPart.Document = new Document();
+        var body = new Body();
+
+        body.AppendChild(new Paragraph(new Run(new Text("Exported Data"))));
+
+        body.AppendChild(new Paragraph(new Run(new Text($"Generated: {DateTime.Now:HH:mm dd-MM-yyyy}"))));
+
+        body.AppendChild(new Paragraph(new Run(new Text("")))); // empty line
+
+        foreach (var row in rows)
+        {
+            foreach(var item in row)
+            {
+                var paragraph = new Paragraph(
+                new Run(
+                    new Text($"{item.Key}: {item.Value}")));
+
+                body.AppendChild(paragraph);
+            }
+            body.AppendChild(new Paragraph(
+            new Run(
+                new Text(""))));
+        }
+
+        mainPart.Document.Append(body);
+        mainPart.Document.Save();
     }
 
     private void ExportExcel(List<Dictionary<string, string>> rows, string filePath)
