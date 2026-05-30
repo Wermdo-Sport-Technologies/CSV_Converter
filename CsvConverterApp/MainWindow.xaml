@@ -11,11 +11,11 @@
     <StackPanel Margin="20">
 
         <!-- Opens a standard Windows file picker and loads CSV headers into the controls below. -->
-        <Button Content="Välj CSV-fil"
+        <Button Content="Choose CSV-file"
                 Click="ChooseInputFile_Click"
                 Margin="0,0,0,10" />
 
-        <TextBlock Text="Välj kolumner:"
+        <TextBlock Text="Choose columns:"
                    FontWeight="Bold"
                    Margin="0,0,0,5" />
 
@@ -26,11 +26,11 @@
 
         <!-- When checked, duplicate source rows are removed before export. -->
         <CheckBox x:Name="RemoveDuplicatesCheckBox"
-                  Content="Ta bort duplicates"
+                  Content="Remove duplicates"
                   Margin="0,0,0,10" />
 
         <!-- The selected column is used to split the output into one file per unique value. -->
-        <TextBlock Text="Dela upp efter kolumn:" />
+        <TextBlock Text="Split by column:" />
         <ComboBox x:Name="SplitColumnComboBox"
                   Margin="0,0,0,10" />
 
@@ -45,11 +45,11 @@
         </ComboBox>
 
         <!-- Uses Windows Forms FolderBrowserDialog because WPF has no built-in folder picker. -->
-        <Button Content="Välj output-mapp"
+        <Button Content="Choose output folder"
                 Click="ChooseOutputFolder_Click"
                 Margin="0,0,0,10" />
 
-        <Button Content="Konvertera"
+        <Button Content="Convert"
                 Click="Convert_Click"
                 Margin="0,0,0,10" />
 
