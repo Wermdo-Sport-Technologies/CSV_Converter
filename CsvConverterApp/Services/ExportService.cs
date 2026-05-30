@@ -13,8 +13,17 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace CsvConverterApp.Services;
 
+/// <summary>
+/// Converts parsed CSV rows into the selected output format.
+/// Supported technologies are ClosedXML for Excel .xlsx files, OpenXML for Word
+/// .docx files, and plain System.IO text writing for Markdown and .txt files.
+/// </summary>
 public class ExportService
 {
+    /// <summary>
+    /// Applies the selected export options, optionally removes duplicates,
+    /// optionally groups rows by a split column, and writes one file per group.
+    /// </summary>
     public void Export(List<Dictionary<string, string>> rows, ExportOptions options)
     {
         //var filterdRows = rows
@@ -36,11 +45,14 @@ public class ExportService
 
         if (options.RemoveDuplicates)
         {
+            // Duplicates are detected by comparing the full source row values joined into one string.
             sourceRows = sourceRows
                 .DistinctBy(row => string.Join("|", row.Values))
                 .ToList();
         }
 
+        // If no split column is selected, all rows are exported to one file named "export".
+        // Otherwise each unique value in the split column becomes a separate output file.
         var groups = string.IsNullOrWhiteSpace(options.SplitByColumn)
             ? new[] { new { Name = "export", Rows = sourceRows } }
             : sourceRows
@@ -56,8 +68,10 @@ public class ExportService
 
         foreach (var group in groups)
         {
+            // File names are based on the split value and sanitized by CleanFileName.
             var path = Path.Combine(options.OutputFolder, $"{group.Name}.{options.ExportFormat}");
 
+            // The selected file extension decides which writer is used.
             switch(options.ExportFormat.ToLower())
             {
                 case "xlsx":
@@ -139,6 +153,10 @@ public class ExportService
         }
     }
 
+    /// <summary>
+    /// Creates a Word document using the OpenXML SDK.
+    /// Each selected row is written as readable label/value paragraphs.
+    /// </summary>
     private void ExportWord(List<Dictionary<string, string>> rows, string filePath)
     {
         using var document = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
@@ -172,6 +190,10 @@ public class ExportService
         mainPart.Document.Save();
     }
 
+    /// <summary>
+    /// Creates an Excel workbook using ClosedXML.
+    /// The first row contains headers and the following rows contain exported CSV values.
+    /// </summary>
     private void ExportExcel(List<Dictionary<string, string>> rows, string filePath)
     {
         using var workbook = new XLWorkbook();
@@ -202,6 +224,10 @@ public class ExportService
         workbook.SaveAs(filePath);
     }
 
+    /// <summary>
+    /// Writes rows as a Markdown table using plain text output.
+    /// This format is useful for documentation, GitHub comments, or simple sharing.
+    /// </summary>
     private void ExportMarkdown(List<Dictionary<string, string>> rows, string filePath)
     {
         if(rows.Count == 0)
@@ -224,6 +250,10 @@ public class ExportService
         File.WriteAllText(filePath, sb.ToString());
     }
 
+    /// <summary>
+    /// Writes rows as simple space-separated text.
+    /// This is the lightest output format and does not require any document library.
+    /// </summary>
     private void ExportText(List<Dictionary<string, string>> rows, string path)
     {
         var sb = new StringBuilder();
@@ -241,6 +271,10 @@ public class ExportService
         File.WriteAllText(path, sb.ToString());
     }
 
+    /// <summary>
+    /// Replaces characters that Windows does not allow in file names.
+    /// Empty split values become "Unknown" so every group can still be exported.
+    /// </summary>
     private static string CleanFileName(string name)
     {
         foreach (var c in Path.GetInvalidFileNameChars())
@@ -251,6 +285,10 @@ public class ExportService
         return string.IsNullOrWhiteSpace(name) ? "Unknown" : name;
     }
 
+    /// <summary>
+    /// Escapes values for CSV-style text output.
+    /// This helper is currently unused because the app exports txt, md, xlsx, and docx.
+    /// </summary>
     private static string EscapeCsv(string value)
     {
         if (value.Contains(",") || value.Contains("\"") || value.Contains("\n"))

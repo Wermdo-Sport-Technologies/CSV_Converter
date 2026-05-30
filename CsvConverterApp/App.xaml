@@ -3,6 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CsvConverterApp"
              StartupUri="MainWindow.xaml">
+    <!--
+        WPF starts the application here and opens MainWindow.xaml.
+        Shared application-wide resources such as styles or brushes would be
+        added below if the UI grows later.
+    -->
     <Application.Resources>
          
     </Application.Resources>

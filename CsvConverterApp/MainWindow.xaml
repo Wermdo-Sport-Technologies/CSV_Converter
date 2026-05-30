@@ -3,8 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CSV Converter" Height="600" Width="900">
 
+    <!--
+        This WPF window defines the full desktop UI for the converter.
+        The code-behind in MainWindow.xaml.cs handles button clicks, reads the
+        selected settings, and sends them to the CSV and export services.
+    -->
     <StackPanel Margin="20">
 
+        <!-- Opens a standard Windows file picker and loads CSV headers into the controls below. -->
         <Button Content="Välj CSV-fil"
                 Click="ChooseInputFile_Click"
                 Margin="0,0,0,10" />
@@ -18,14 +24,17 @@
                  Height="200"
                  Margin="0,0,0,10" />
 
+        <!-- When checked, duplicate source rows are removed before export. -->
         <CheckBox x:Name="RemoveDuplicatesCheckBox"
                   Content="Ta bort duplicates"
                   Margin="0,0,0,10" />
 
+        <!-- The selected column is used to split the output into one file per unique value. -->
         <TextBlock Text="Dela upp efter kolumn:" />
         <ComboBox x:Name="SplitColumnComboBox"
                   Margin="0,0,0,10" />
 
+        <!-- ExportService supports txt, xlsx, md, and docx output formats. -->
         <TextBlock Text="Exportformat:" />
         <ComboBox x:Name="FormatComboBox"
                   Margin="0,0,0,10">
@@ -35,6 +44,7 @@
             <ComboBoxItem Content="docx" />
         </ComboBox>
 
+        <!-- Uses Windows Forms FolderBrowserDialog because WPF has no built-in folder picker. -->
         <Button Content="Välj output-mapp"
                 Click="ChooseOutputFolder_Click"
                 Margin="0,0,0,10" />
