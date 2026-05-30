@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    CSV Converter is a Windows desktop application built with .NET 8 and WPF.
+    WPF provides the user interface, while Windows Forms is enabled so the app
+    can use FolderBrowserDialog for choosing an output folder.
+  -->
   <PropertyGroup>
       <Company>Wermdö Sport Technologies</Company>
       <Product>CSV Converter</Product>
@@ -17,8 +22,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- ClosedXML creates .xlsx Excel workbooks without requiring Excel to be installed. -->
     <PackageReference Include="ClosedXML" Version="0.105.0" />
+
+    <!-- CsvHelper reads CSV files using header names and handles CSV parsing rules. -->
     <PackageReference Include="CsvHelper" Version="33.1.0" />
+
+    <!-- OpenXML is used directly for .docx Word document export. -->
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
   </ItemGroup>
 
