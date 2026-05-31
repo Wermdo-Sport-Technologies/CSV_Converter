@@ -93,7 +93,8 @@ public partial class MainWindow : Window
             SelectedColumns = selectedColumns,
             RemoveDuplicates = RemoveDuplicatesCheckBox.IsChecked == true,
             ExportFormat = format,
-            SplitByColumn = SplitColumnComboBox.SelectedItem as string
+            SplitByColumn = SplitColumnComboBox.SelectedItem as string,
+            ExcelUseSheetsInsteadOfFiles = ExcelSheetsCheckBox.IsChecked == true
         };
 
         // CsvReaderService returns rows as dictionaries keyed by column header.

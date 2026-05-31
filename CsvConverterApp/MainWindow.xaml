@@ -44,6 +44,12 @@
             <ComboBoxItem Content="docx" />
         </ComboBox>
 
+        <!-- When checked, Excel exports will create different sheets in the same file instead of separate files. -->
+        <!--TODO: make this only visible when xlsx format is selected, or only enable it when xlsx format is selected -->
+        <CheckBox x:Name="ExcelSheetsCheckBox"
+          Content="For Excel: Create different sheets in the same file instead of separate files"
+          Margin="0,0,0,10" />
+
         <!-- Uses Windows Forms FolderBrowserDialog because WPF has no built-in folder picker. -->
         <Button Content="Choose output folder"
                 Click="ChooseOutputFolder_Click"
