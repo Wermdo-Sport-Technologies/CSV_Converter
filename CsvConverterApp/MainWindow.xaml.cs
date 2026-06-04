@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
+
 namespace CsvConverterApp;
 
 /// <summary>
@@ -93,7 +94,8 @@ public partial class MainWindow : Window
             SelectedColumns = selectedColumns,
             RemoveDuplicates = RemoveDuplicatesCheckBox.IsChecked == true,
             ExportFormat = format,
-            SplitByColumn = SplitColumnComboBox.SelectedItem as string
+            SplitByColumn = SplitColumnComboBox.SelectedItem as string,
+            ExcelUseSheetsInsteadOfFiles = ExcelSheetsCheckBox.IsChecked == true
         };
 
         // CsvReaderService returns rows as dictionaries keyed by column header.
@@ -102,5 +104,20 @@ public partial class MainWindow : Window
         _exportService.Export(rows, options);
 
         StatusText.Text = "Conversion complete.";
+    }
+
+    private void FormatComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedItem = FormatComboBox.SelectedItem as ComboBoxItem;
+        var format = selectedItem?.Content?.ToString()?.ToLower();
+
+        var isExcel = format == "xlsx";
+
+        ExcelSheetsCheckBox.IsEnabled = isExcel;
+
+        if (!isExcel)
+        {
+            ExcelSheetsCheckBox.IsChecked = false;
+        }
     }
 }

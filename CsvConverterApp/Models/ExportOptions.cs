@@ -41,4 +41,9 @@ public class ExportOptions
     /// For example, choosing a grade column creates one file per grade value.
     /// </summary>
     public string? SplitByColumn { get; set; }
+
+    /// <summary>
+    /// Should the export service create one Excel file with multiple sheets (true) or multiple Excel files (false) when exporting to xlsx format.
+    /// </summary>
+    public bool ExcelUseSheetsInsteadOfFiles { get; set; }
 }
