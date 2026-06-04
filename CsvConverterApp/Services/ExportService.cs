@@ -20,137 +20,77 @@ namespace CsvConverterApp.Services;
 /// </summary>
 public class ExportService
 {
+
     /// <summary>
     /// Applies the selected export options, optionally removes duplicates,
     /// optionally groups rows by a split column, and writes one file per group.
     /// </summary>
     public void Export(List<Dictionary<string, string>> rows, ExportOptions options)
     {
-        //var filterdRows = rows
-        //    .Select(row => options.SelectedColumns.ToDictionary(
-        //        col => col,
-        //        col => row.TryGetValue(col, out var value) ? value : ""))
-        //    .ToList();
-
-        //if (options.RemoveDuplicates)
-        //{
-        //    filterdRows = filterdRows.DistinctBy(row => string.Join("|", row.Values)).ToList();
-        //}
-
-        //var groups = string.IsNullOrWhiteSpace(options.SplitByColumn) ? new[] { new { Name = "export", Rows = filterdRows } } : filterdRows
-        //    .GroupBy(row => row.GetValueOrDefault(options.SplitByColumn, "Unknown"))
-        //    .Select(g => new { Name = CleanFileName(g.Key), Rows = g.ToList() });
-
         var sourceRows = rows;
 
         if (options.RemoveDuplicates)
         {
-            // Duplicates are detected by comparing the full source row values joined into one string.
             sourceRows = sourceRows
-                .DistinctBy(row => string.Join("|", row.Values))
+                .GroupBy(row => string.Join("|", row.Values))
+                .Select(g => g.First())
                 .ToList();
         }
 
-        // If no split column is selected, all rows are exported to one file named "export".
-        // Otherwise each unique value in the split column becomes a separate output file.
-        var groups = string.IsNullOrWhiteSpace(options.SplitByColumn)
-            ? new[] { new { Name = "export", Rows = sourceRows } }
-            : sourceRows
-                .GroupBy(row =>
-                    row.TryGetValue(options.SplitByColumn, out var value)
-                        ? value
-                        : "Unknown")
-                .Select(g => new
-                {
-                    Name = CleanFileName(g.Key),
-                    Rows = g.ToList()
-                });
+        List<ExportGroup> groups;
+
+        if (string.IsNullOrWhiteSpace(options.SplitByColumn))
+        {
+            groups =[new ExportGroup{Name = "export", Rows = sourceRows}];
+        }
+        else
+        {
+            groups = sourceRows.GroupBy(row => row.TryGetValue(options.SplitByColumn, out var value) ? value : "Unknown").Select(g => new ExportGroup{Name = CleanFileName(g.Key), Rows = g.ToList()}).ToList();
+        }
+
+        if (options.ExportFormat.ToLower() == "xlsx" && options.ExcelUseSheetsInsteadOfFiles)
+        {
+            var path = Path.Combine(options.OutputFolder, "Export.xlsx");
+            ExportExcelWithSheets(groups.ToList(), options.SelectedColumns, path);
+            return;
+        }
 
         foreach (var group in groups)
         {
-            // File names are based on the split value and sanitized by CleanFileName.
-            var path = Path.Combine(options.OutputFolder, $"{group.Name}.{options.ExportFormat}");
+            var exportRows = SelectColumns(group.Rows, options.SelectedColumns);
 
-            // The selected file extension decides which writer is used.
-            switch(options.ExportFormat.ToLower())
+            var path = Path.Combine(
+                options.OutputFolder,
+                $"{group.Name}.{options.ExportFormat}");
+            switch (options.ExportFormat.ToLower())
             {
                 case "xlsx":
-                    foreach (var _group in groups)
-                    {
-                        var exportRows = group.Rows
-                            .Select(row => options.SelectedColumns.ToDictionary(
-                                col => col,
-                                col => row.TryGetValue(col, out var value)
-                                    ? value
-                                    : ""))
-                            .ToList();
-
-                        var _path = Path.Combine(
-                            options.OutputFolder,
-                            $"{group.Name}.{options.ExportFormat}");
-
-                        ExportExcel(exportRows, _path);
-                    }
-                    break;
-
-                case "md":
-                    foreach (var _group in groups)
-                    {
-                        var exportRows = group.Rows
-                            .Select(row => options.SelectedColumns.ToDictionary(
-                                col => col,
-                                col => row.TryGetValue(col, out var value)
-                                    ? value
-                                    : ""))
-                            .ToList();
-
-                        var _path = Path.Combine(
-                            options.OutputFolder,
-                            $"{group.Name}.{options.ExportFormat}");
-
-                        ExportMarkdown(exportRows, _path);
-                    }
-                    break;
-
-                case "txt":
-                    foreach (var _group in groups)
-                    {
-                        var exportRows = group.Rows
-                            .Select(row => options.SelectedColumns.ToDictionary(
-                                col => col,
-                                col => row.TryGetValue(col, out var value)
-                                    ? value
-                                    : ""))
-                            .ToList();
-
-                        var _path = Path.Combine(
-                            options.OutputFolder,
-                            $"{group.Name}.{options.ExportFormat}");
-
-                        ExportText(exportRows, _path);
-                    }
+                    ExportExcel(exportRows, path);
                     break;
                 case "docx":
-                    foreach (var _group in groups)
-                    {
-                        var exportRows = group.Rows
-                            .Select(row => options.SelectedColumns.ToDictionary(
-                                col => col,
-                                col => row.TryGetValue(col, out var value)
-                                    ? value
-                                    : ""))
-                            .ToList();
-
-                        var _path = Path.Combine(
-                            options.OutputFolder,
-                            $"{group.Name}.{options.ExportFormat}");
-
-                        ExportWord(exportRows, _path);
-                    }
+                    ExportWord(exportRows, path);
                     break;
-
+                case "md":
+                    ExportMarkdown(exportRows, path);
+                    break;
+                case "txt":
+                    ExportText(exportRows, path);
+                    break;
+                default:
+                    throw new NotSupportedException($"Export format {options.ExportFormat} is not supported.");
             }
         }
+    }
+
+    private List<Dictionary<string, string>> SelectColumns(
+    List<Dictionary<string, string>> rows,
+    List<string> selectedColumns)
+    {
+        return rows
+            .Select(row => selectedColumns.ToDictionary(
+                col => col,
+                col => row.TryGetValue(col, out var value) ? value : ""))
+            .ToList();
     }
 
     /// <summary>
@@ -188,6 +128,45 @@ public class ExportService
 
         mainPart.Document.Append(body);
         mainPart.Document.Save();
+    }
+
+    /// <summary>
+    /// Creates an Excel workbook using ClosedXML.
+    /// The first row contains headers and the following rows contain exported CSV values.
+    /// Creates one sheet per group when the "split by column" option is used, otherwise creates a single sheet with all rows.
+    /// </summary>
+    private void ExportExcelWithSheets(List<ExportGroup> groups, List<string> _selectedColumns, string filePath)
+    {
+        using var workBook = new XLWorkbook();
+
+        foreach (var group in groups)
+        {
+            var exportRows = SelectColumns(group.Rows, _selectedColumns);
+            var sheetName = CleanWorksheetName(group.Name);
+
+            var ws = workBook.Worksheets.Add(sheetName);
+
+            if(exportRows.Count == 0)
+            {
+                continue;
+            }
+
+            var headers = exportRows.First().Keys.ToList();
+            for (int i = 0; i < headers.Count; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+            }
+
+            for (int r = 0; r < exportRows.Count; r++)
+            {
+                for (int c = 0; c < headers.Count; c++)
+                {
+                    ws.Cell(r + 2, c + 1).Value = exportRows[r][headers[c]];
+                }
+            }
+            ws.Columns().AdjustToContents();
+        }
+        workBook.SaveAs(filePath);
     }
 
     /// <summary>
@@ -296,5 +275,22 @@ public class ExportService
             return $"\"{value.Replace("\"", "\"\"")}\"";
         }
         return value;
+    }
+
+    private static string CleanWorksheetName(string name)
+    {
+        char[] invalidChars = ['\\', '/', '*', '[', ']', ':', '?'];
+
+        foreach (var c in invalidChars)
+        {
+            name = name.Replace(c, '_');
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = "Sheet";
+        }
+
+        return name.Length > 31 ? name[..31] : name;
     }
 }
